@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 void main() {
   runApp(const MyApp());
@@ -31,19 +33,30 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final TextEditingController _textController = TextEditingController();
 
-  void _onSearch() {
+  String? _searchResult;
+
+  void _onSearch() async {
     String inputText = _textController.text;
-    // Implement search functionality here
-    print("Searching for: $inputText");
+    if (inputText.isEmpty) return;
+
+    final response = await http.get(
+      Uri.parse('http://127.0.0.1:8000/search?query=$inputText'),
+    );
+
+    if (response.statusCode == 200) {
+      final result = jsonDecode(response.body);
+      setState(() {
+        _searchResult = result['best_match'];
+      });
+    } else {
+      print("Failed to fetch data");
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
-      ),
+      appBar: AppBar(title: Text(widget.title)),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -51,13 +64,16 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
             TextField(
               controller: _textController,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Enter a sentence',
-              ),
+              decoration: const InputDecoration(labelText: 'Enter a sentence'),
             ),
             const SizedBox(height: 20),
             ElevatedButton(onPressed: _onSearch, child: const Text('Search')),
+            const SizedBox(height: 20),
+            if (_searchResult != null)
+              Text(
+                "Best Match: $_searchResult",
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
           ],
         ),
       ),
