@@ -39,8 +39,9 @@ class _MyHomePageState extends State<MyHomePage> {
     String inputText = _textController.text;
     if (inputText.isEmpty) return;
 
+    // 127.0.0.1 for testing on local device
     final response = await http.get(
-      Uri.parse('http://127.0.0.1:8000/search?query=$inputText'),
+      Uri.parse('http://192.168.18.6:8000/search?query=$inputText'),
     );
 
     if (response.statusCode == 200) {

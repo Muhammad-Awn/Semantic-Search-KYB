@@ -25,8 +25,9 @@ def search_sentence(query: str = Query(...)):
     result = index.query(vector=query_embedding[0], top_k=1, include_metadata=True)
 
     if result and "matches" in result and result["matches"]:
-        best_match = result["matches"][0]["metadata"]["sentence"]
+        print(result["matches"][0]["metadata"]["text"])
+        best_match = result["matches"][0]["metadata"]["text"]
     else:
-        best_match = "No matching sentence found."
+        best_match = "No matching text found."
 
     return {"best_match": best_match}
