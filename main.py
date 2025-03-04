@@ -2,7 +2,6 @@ from fastapi import FastAPI, Query
 from sentence_transformers import SentenceTransformer
 from pinecone import Pinecone
 from creds import Pinecone_API
-import os
 
 # Initialize FastAPI
 app = FastAPI()

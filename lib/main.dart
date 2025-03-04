@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:logger/logger.dart';
+
+// Create a global logger instance
+final Logger logger = Logger();
 
 void main() {
   runApp(const MyApp());
@@ -50,7 +54,7 @@ class _MyHomePageState extends State<MyHomePage> {
         _searchResult = result['best_match'];
       });
     } else {
-      print("Failed to fetch data");
+      logger.w("Failed to fetch data");
     }
   }
 
