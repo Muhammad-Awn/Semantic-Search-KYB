@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:logger/logger.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 // Create a global logger instance
 final Logger logger = Logger();
@@ -38,6 +40,8 @@ class _MyHomePageState extends State<MyHomePage> {
   final TextEditingController _textController = TextEditingController();
 
   Map<String, dynamic>? _searchResult; // Nullable Map instead of String
+  File? _image;
+  final ImagePicker _picker = ImagePicker();
 
   void _onSearch() async {
     String inputText = _textController.text;
@@ -47,19 +51,6 @@ class _MyHomePageState extends State<MyHomePage> {
     final response = await http.get(
       Uri.parse('http://192.168.18.6:8000/search?query=$inputText'),
     );
-
-    /*
-    if (response.statusCode == 200) {
-      final result = jsonDecode(response.body);
-      setState(() {
-        _searchResult = result['best_match'];
-      });
-      logger.w("Fetched data successfully: $result");
-      logger.w("Response body: ${response.body}");
-    } else {
-      logger.w("Failed to fetch data");
-    }
-    */
 
     if (response.statusCode == 200) {
       try {
@@ -77,6 +68,36 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _image = File(pickedFile.path);
+      });
+      _showImagePopup();
+    }
+  }
+
+  void _showImagePopup() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content:
+              _image != null
+                  ? Image.file(_image!, fit: BoxFit.contain)
+                  : const Text("No image selected"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text("Close"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -84,7 +105,7 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          // mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment:
               CrossAxisAlignment.start, // Align text to the left
           children: <Widget>[
@@ -94,6 +115,11 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             const SizedBox(height: 20),
             ElevatedButton(onPressed: _onSearch, child: const Text('Search')),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: _pickImage,
+              child: const Text('Pick Image from Gallery'),
+            ),
             const SizedBox(height: 20),
 
             // Display search results using RichText
