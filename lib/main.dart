@@ -37,7 +37,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final TextEditingController _textController = TextEditingController();
 
-  String? _searchResult;
+  Map<String, dynamic>? _searchResult; // Nullable Map instead of String
 
   void _onSearch() async {
     String inputText = _textController.text;
@@ -48,13 +48,32 @@ class _MyHomePageState extends State<MyHomePage> {
       Uri.parse('http://192.168.18.6:8000/search?query=$inputText'),
     );
 
+    /*
     if (response.statusCode == 200) {
       final result = jsonDecode(response.body);
       setState(() {
         _searchResult = result['best_match'];
       });
+      logger.w("Fetched data successfully: $result");
+      logger.w("Response body: ${response.body}");
     } else {
       logger.w("Failed to fetch data");
+    }
+    */
+
+    if (response.statusCode == 200) {
+      try {
+        final Map<String, dynamic> result = jsonDecode(response.body);
+
+        setState(() {
+          _searchResult = result;
+        });
+        logger.w("Fetched data successfully: $_searchResult");
+      } catch (e) {
+        logger.e("Error decoding JSON: $e");
+      }
+    } else {
+      logger.w("Failed to fetch data. Status Code: ${response.statusCode}");
     }
   }
 
@@ -66,6 +85,8 @@ class _MyHomePageState extends State<MyHomePage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment:
+              CrossAxisAlignment.start, // Align text to the left
           children: <Widget>[
             TextField(
               controller: _textController,
@@ -74,10 +95,87 @@ class _MyHomePageState extends State<MyHomePage> {
             const SizedBox(height: 20),
             ElevatedButton(onPressed: _onSearch, child: const Text('Search')),
             const SizedBox(height: 20),
+
+            // Display search results using RichText
             if (_searchResult != null)
-              Text(
-                "Best Match: $_searchResult",
-                style: Theme.of(context).textTheme.titleLarge,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Best Matches:",
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 10),
+
+                  RichText(
+                    text: TextSpan(
+                      style: Theme.of(context).textTheme.bodyLarge,
+                      children: [
+                        const TextSpan(
+                          text: "Quran: ",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        TextSpan(
+                          text: "${_searchResult?['first_match']['id']}   ",
+                        ),
+                        TextSpan(
+                          text: "${_searchResult?['first_match']['text']}   ",
+                          style: const TextStyle(color: Colors.blue),
+                        ),
+                        TextSpan(
+                          text: "(${_searchResult?['first_match']['score']})",
+                          style: const TextStyle(fontStyle: FontStyle.italic),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  RichText(
+                    text: TextSpan(
+                      style: Theme.of(context).textTheme.bodyLarge,
+                      children: [
+                        const TextSpan(
+                          text: "Quran: ",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        TextSpan(
+                          text: "${_searchResult?['second_match']['id']}   ",
+                        ),
+                        TextSpan(
+                          text: "${_searchResult?['second_match']['text']}   ",
+                          style: const TextStyle(color: Colors.blue),
+                        ),
+                        TextSpan(
+                          text: "(${_searchResult?['second_match']['score']})",
+                          style: const TextStyle(fontStyle: FontStyle.italic),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  RichText(
+                    text: TextSpan(
+                      style: Theme.of(context).textTheme.bodyLarge,
+                      children: [
+                        const TextSpan(
+                          text: "Quran: ",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        TextSpan(
+                          text: "${_searchResult?['third_match']['id']}   ",
+                        ),
+                        TextSpan(
+                          text: "${_searchResult?['third_match']['text']}   ",
+                          style: const TextStyle(color: Colors.blue),
+                        ),
+                        TextSpan(
+                          text: "(${_searchResult?['third_match']['score']})",
+                          style: const TextStyle(fontStyle: FontStyle.italic),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
           ],
         ),
